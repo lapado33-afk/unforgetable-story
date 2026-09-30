@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<!--
+  CATATAN PERANCANGAN TPACK (untuk guru, tidak tampil ke siswa)
+  ================================================================
+  Mapel: Bahasa Inggris | Kelas 8 | TP 8.1 — Recount pengalaman masa lalu (liburan/perayaan desa)
+  Pendekatan: Genre-Based Approach + Pembelajaran Mendalam (Memahami-Mengaplikasi-Merefleksi)
+  Fokus: Pertemuan 1 (fase BKOF/MOT -> Memahami & Merefleksi)
+
+  CK (Content Knowledge): materi bersifat PROSEDURAL (transformasi kata kerja present->past)
+  dan LEKSIKAL (kosa kata kegiatan desa). Ada aturan sebab-akibat yang jelas (verb + ed / verb
+  tak beraturan) -> cocok disimulasikan, bukan hanya dihafal.
+
+  PK (Pedagogical Knowledge): strategi guru = discovery ringan lewat drilling visual (choral
+  repetition), classification game (kelompokkan kata sekarang vs lampau -- PERSIS aktivitas
+  "Wordwall" di modul ajar), dan personalisasi (pasangan membuat 3 kalimat sendiri). Level
+  kognitif: memahami & mengaplikasikan (C2-C3), bukan analisis tinggi -- sesuai tahap BKOF.
+
+  TK (Technological Knowledge): video YouTube pada modul asli diganti Cerita Bergambar
+  beranimasi (SVG panel + opsional text-to-speech offline) karena YouTube butuh internet dan
+  melanggar syarat "tanpa internet". Game "Wordwall" diwujudkan sebagai Edugame Sortir
+  Kata (klik, bukan drag, agar stabil di HP/tablet).
+
+  Titik temu:
+  - PK x TK -> drill & practice (klasifikasi kata) diwujudkan sebagai Edugame Sortir Waktu
+    dengan skor & timer, sesuai instruksi asli guru.
+  - CK x TK -> aturan transformasi verb (+ed / tak beraturan) yang abstrak diwujudkan sebagai
+    Lab Maya "Village Story Builder": siswa memilih subjek+kata kerja+tempat+waktu, lalu
+    menyaksikan transformasi visual verb ke bentuk lampau secara real-time.
+  - CK x PK -> kosa kata dikenalkan dulu lewat cerita & pencocokan (eksplisit/terbimbing),
+    baru pengelompokan & pembuatan kalimat sendiri diberikan sebagai eksplorasi mandiri.
+  Semua interaksi mendukung mouse & sentuhan jari (klik-pilih, bukan drag fisik), responsif
+  3 breakpoint (HP/Tablet/Laptop), 100% offline (tanpa CDN/font/gambar dari internet).
+-->
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>Unforgettable Village Memories — My Tale, My Village</title>
+<style>
+:root{
+  --bg:#FAF3E7;
+  --bg-alt:#F1E6CD;
+  --panel:#FFFDF8;
+  --ink:#2B2620;
+  --ink-soft:#5A5245;
+  --green:#2F5233;
+  --green-light:#4C7A52;
+  --gold:#E3A430;
+  --gold-soft:#F3D48B;
+  --brick:#B85C38;
+  --teal:#1F6F78;
+  --red:#C0453A;
+  --line:#E4D6B4;
+  --radius:16px;
+  --shadow:0 6px 18px rgba(43,38,32,.12);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+  line-height:1.55;
+  font-size:clamp(15px,1.6vw,17px);
+  -webkit-tap-highlight-color:transparent;
+}
+h1,h2,h3,h4{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  color:var(--green);
+  line-height:1.2;
+  margin:0 0 .5em;
+  letter-spacing:.2px;
+}
+h2{font-size:clamp(1.4rem,3.2vw,2rem); font-weight:800;}
+h3{font-size:clamp(1.1rem,2.4vw,1.4rem); font-weight:700;}
+p{margin:0 0 1em;}
+button{font-family:inherit; cursor:pointer;}
+.section{padding:56px 6vw; max-width:980px; margin:0 auto;}
+.section-alt{background:var(--bg-alt);}
+.screen.hidden{display:none !important;}
+.step-nav{display:flex; justify-content:space-between; gap:12px; margin-top:44px; padding-top:24px; border-top:1px dashed var(--line); max-width:980px;}
+.step-nav .spacer{flex:1;}
+nav.links a.nav-active{background:var(--green); color:#fff;}
+.eyebrow{
+  display:inline-block; font-size:.78rem; font-weight:700; letter-spacing:1.5px;
+  text-transform:uppercase; color:var(--brick); background:#fff3e2; border:1px solid var(--gold-soft);
+  padding:5px 12px; border-radius:99px; margin-bottom:14px;
+}
+
+/* ---------- BUNTING FLAG DIVIDER (signature motif) ---------- */
+.bunting{display:flex; justify-content:center; gap:0; height:26px; overflow:hidden; margin:0 auto;}
+.bunting span{
+  width:0; height:0; border-left:13px solid transparent; border-right:13px solid transparent;
+  border-top:22px solid var(--gold); margin:0 3px; opacity:.9;
+}
+.bunting span:nth-child(3n+2){border-top-color:var(--brick);}
+.bunting span:nth-child(3n){border-top-color:var(--teal);}
+
+/* ---------- PROGRESS BAR ---------- */
+#progressbar{position:fixed; top:0; left:0; height:4px; background:var(--gold); z-index:999; width:0%; transition:width .1s;}
+
+/* ---------- NAV ---------- */
+header.nav{
+  position:sticky; top:0; z-index:900; background:rgba(250,243,231,.96); backdrop-filter:blur(4px);
+  border-bottom:1px solid var(--line); padding:10px 5vw;
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.brand{font-weight:800; color:var(--green); font-size:1rem; display:flex; align-items:center; gap:8px; white-space:nowrap;}
+.brand .flagdot{width:10px;height:10px;border-radius:2px;background:var(--gold);display:inline-block;transform:rotate(45deg);}
+#navToggle{
+  display:none; background:var(--green); color:#fff; border:none; width:40px; height:36px; border-radius:8px; font-size:1.1rem;
+}
+nav.links{display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end;}
+nav.links a{
+  font-size:.82rem; font-weight:600; text-decoration:none; color:var(--ink-soft);
+  padding:7px 10px; border-radius:99px; border:1px solid transparent; white-space:nowrap;
+}
+nav.links a:hover{border-color:var(--line); color:var(--green);}
+
+/* ---------- HERO ---------- */
+.hero{
+  padding:64px 6vw 40px; text-align:center; position:relative; overflow:hidden;
+  background:linear-gradient(180deg,#FDF6E8 0%, var(--bg) 100%);
+}
+.hero h1{font-size:clamp(1.8rem,5vw,3rem); margin-bottom:.3em;}
+.hero .sub{color:var(--ink-soft); font-size:clamp(1rem,2vw,1.15rem); max-width:640px; margin:0 auto 24px;}
+.scene{width:100%; max-width:640px; margin:20px auto; display:block;}
+.meta-row{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:18px 0;}
+.meta-chip{
+  background:var(--panel); border:1px solid var(--line); border-radius:99px; padding:6px 14px;
+  font-size:.82rem; font-weight:600; color:var(--green);
+}
+.btn{
+  display:inline-block; background:var(--green); color:#fff; border:none; padding:14px 28px;
+  border-radius:99px; font-weight:700; font-size:1rem; box-shadow:var(--shadow); min-height:44px;
+  transition:transform .15s;
+}
+.btn:hover{transform:translateY(-2px);}
+.btn.secondary{background:var(--teal);}
+.btn.gold{background:var(--gold); color:var(--ink);}
+.btn.outline{background:transparent; color:var(--green); border:2px solid var(--green);}
+.btn.small{padding:9px 16px; font-size:.85rem;}
+
+/* ---------- CARDS / PANELS ---------- */
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:22px 24px; box-shadow:var(--shadow);
+}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:18px;}
+.grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+@media (max-width:768px){ .grid2, .grid3{grid-template-columns:1fr;} }
+
+.tp-box{
+  background:#F2F8F1; border-left:5px solid var(--green); border-radius:10px; padding:18px 20px;
+}
+.pemantik{
+  background:#FFF6E8; border:1px dashed var(--gold); border-radius:12px; padding:18px 20px; margin-top:14px;
+}
+.pemantik textarea{
+  width:100%; min-height:60px; border:1px solid var(--line); border-radius:8px; padding:10px;
+  font-family:inherit; font-size:.95rem; resize:vertical;
+}
+
+/* ---------- STORY PANELS ---------- */
+.story-wrap{position:relative;}
+.story-panel{display:none; text-align:center;}
+.story-panel.active{display:block; animation:fadeIn .4s ease;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+.story-svg{width:100%; max-width:520px; height:auto; margin:0 auto; display:block;}
+.story-caption{margin-top:14px; font-size:1.05rem;}
+.story-caption b{background:var(--gold-soft); padding:1px 6px; border-radius:5px; cursor:pointer;}
+.story-controls{display:flex; gap:10px; justify-content:center; margin-top:16px; flex-wrap:wrap;}
+.dots{display:flex; gap:7px; justify-content:center; margin-top:12px;}
+.dots span{width:9px;height:9px;border-radius:50%;background:var(--line);}
+.dots span.on{background:var(--gold);}
+
+/* ---------- VOCAB CHIPS ---------- */
+.vocab-list{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;}
+.vocab-chip{
+  background:var(--panel); border:1px solid var(--gold); color:var(--green); font-weight:700;
+  border-radius:99px; padding:9px 16px; min-height:44px; display:flex; align-items:center; font-size:.92rem;
+}
+
+/* ---------- MATCHING GAME ---------- */
+.match-wrap{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:20px;}
+@media (max-width:768px){.match-wrap{grid-template-columns:1fr;}}
+.match-col h4{margin-bottom:10px; color:var(--brick);}
+.match-item{
+  background:var(--panel); border:2px solid var(--line); border-radius:12px; padding:12px 14px;
+  margin-bottom:10px; min-height:44px; font-weight:600; display:flex; align-items:center; gap:8px;
+}
+.match-item.selected{border-color:var(--teal); box-shadow:0 0 0 3px rgba(31,111,120,.15);}
+.match-item.correct{border-color:var(--green); background:#F1F8F1; color:var(--green); opacity:.75;}
+.match-item.wrong{animation:shake .3s;}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+#matchStatus{margin-top:14px; font-weight:700;}
+
+/* ---------- EDUGAME SORT ---------- */
+.sort-hud{display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin:14px 0;}
+.hud-chip{background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:8px 14px; font-weight:700; font-size:.9rem;}
+.chip-pool{display:flex; flex-wrap:wrap; gap:10px; min-height:54px; padding:12px; background:var(--bg-alt); border-radius:12px; margin-bottom:16px;}
+.word-chip{
+  background:var(--panel); border:2px solid var(--teal); color:var(--teal); font-weight:800;
+  padding:10px 16px; border-radius:99px; min-height:44px; font-size:.95rem;
+}
+.word-chip.selected{background:var(--teal); color:#fff;}
+.word-chip[disabled]{opacity:.25;}
+.buckets{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:600px){.buckets{grid-template-columns:1fr;}}
+.bucket{
+  border:3px dashed var(--gold); border-radius:14px; padding:16px; min-height:120px; text-align:center;
+  background:#FFFBF1;
+}
+.bucket h4{margin-bottom:8px;}
+.bucket .dropped{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; min-height:28px;}
+.bucket .dropped span{background:#fff; border:1px solid var(--line); border-radius:8px; padding:4px 9px; font-size:.82rem;}
+
+/* ---------- LAB MAYA ---------- */
+.lab-panel{background:#FDF9EF; border:2px solid var(--gold-soft); border-radius:18px; padding:22px 24px; margin-top:16px;}
+.lab-controls{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px;}
+@media (max-width:900px){.lab-controls{grid-template-columns:1fr 1fr;}}
+@media (max-width:480px){.lab-controls{grid-template-columns:1fr;}}
+.lab-controls label{display:block; font-size:.78rem; font-weight:700; color:var(--brick); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px;}
+.lab-controls select{
+  width:100%; padding:11px; border-radius:10px; border:1px solid var(--line); font-family:inherit; font-size:.92rem; min-height:44px; background:#fff;
+}
+.sentence-box{
+  background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px; text-align:center;
+  font-size:clamp(1.1rem,2.6vw,1.4rem); font-weight:700; color:var(--ink); min-height:64px;
+}
+.sentence-box .verb-old{color:var(--ink-soft); text-decoration:line-through; margin-right:6px;}
+.sentence-box .verb-new{color:var(--green); background:var(--gold-soft); padding:2px 8px; border-radius:6px;}
+.rule-note{margin-top:10px; font-size:.88rem; color:var(--teal); font-weight:600; text-align:center; min-height:20px;}
+.lab-log{margin-top:18px;}
+.lab-log ul{list-style:none; padding:0; margin:10px 0 0; display:flex; flex-direction:column; gap:6px;}
+.lab-log li{background:#fff; border-left:4px solid var(--green); border-radius:6px; padding:9px 12px; font-size:.9rem;}
+
+/* ---------- STICKY / REFLEKSI ---------- */
+.sticker-row{display:flex; gap:14px; flex-wrap:wrap; margin-top:14px;}
+.sticker-btn{
+  flex:1; min-width:110px; border:none; border-radius:14px; padding:18px 10px; font-weight:800; color:#fff; min-height:44px;
+  font-size:.95rem; opacity:.9;
+}
+.sticker-btn.green{background:var(--green);}
+.sticker-btn.yellow{background:#D9A11E;}
+.sticker-btn.red{background:var(--red);}
+.sticker-btn.active{opacity:1; box-shadow:0 0 0 4px rgba(0,0,0,.08); transform:scale(1.03);}
+#reflectResult{margin-top:12px; font-weight:700;}
+.mini-input{width:100%; padding:11px; border-radius:10px; border:1px solid var(--line); font-family:inherit; margin-top:8px; min-height:44px;}
+
+/* ---------- QUIZ ---------- */
+.quiz-progress{height:8px; background:var(--line); border-radius:99px; overflow:hidden; margin-bottom:20px;}
+.quiz-progress i{display:block; height:100%; background:var(--green); width:0%; transition:width .3s;}
+.quiz-opt{
+  display:block; width:100%; text-align:left; background:var(--panel); border:2px solid var(--line);
+  border-radius:12px; padding:13px 16px; margin-bottom:10px; font-size:.95rem; min-height:44px;
+}
+.quiz-opt.correct{border-color:var(--green); background:#F1F8F1;}
+.quiz-opt.wrong{border-color:var(--red); background:#FCEFED;}
+.quiz-opt[disabled]{opacity:.7;}
+#quizExplain{background:#FFF6E8; border-radius:10px; padding:12px 14px; font-size:.9rem; display:none; margin-top:6px;}
+#quizFinal{display:none; text-align:center;}
+
+/* ---------- PAIR ACTIVITY ---------- */
+.pair-item{margin-bottom:14px;}
+.pair-item label{font-weight:700; font-size:.9rem; color:var(--brick); display:block; margin-bottom:6px;}
+.pair-item input{width:100%; padding:11px; border-radius:10px; border:1px solid var(--line); font-family:inherit; min-height:44px;}
+
+/* ---------- TABLE OF CONTENTS (menu peta materi) ---------- */
+.toc{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px;}
+@media (max-width:768px){.toc{grid-template-columns:1fr 1fr;}}
+@media (max-width:480px){.toc{grid-template-columns:1fr;}}
+.toc a{
+  display:block; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px;
+  text-decoration:none; color:var(--ink); font-weight:700; font-size:.88rem;
+}
+.toc a span{display:block; font-size:.72rem; color:var(--gold); font-weight:800; margin-bottom:3px; text-transform:uppercase;}
+
+footer{text-align:center; padding:34px 6vw 50px; color:var(--ink-soft); font-size:.85rem;}
+.badge-list{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+.badge{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:.85rem;}
+
+
+/* ---------- DEVELOPER & REFERENCE MENU ---------- */
+.nav-info-btn{
+  font-family:inherit; font-size:.82rem; font-weight:600; color:var(--ink-soft);
+  padding:7px 10px; border-radius:99px; border:1px solid transparent;
+  background:transparent; cursor:pointer; white-space:nowrap;
+}
+.nav-info-btn:hover{border-color:var(--line); color:var(--green); background:var(--panel);}
+.info-modal{
+  position:fixed; inset:0; z-index:2000; display:none; align-items:center; justify-content:center;
+  padding:20px; background:rgba(43,38,32,.62); backdrop-filter:blur(3px);
+}
+.info-modal.open{display:flex;}
+.info-modal-card{
+  width:min(560px,100%); max-height:85vh; overflow:auto; background:var(--panel);
+  border:1px solid var(--line); border-top:6px solid var(--green); border-radius:18px;
+  box-shadow:0 18px 50px rgba(0,0,0,.25); padding:26px;
+}
+.info-modal-card.reference{border-top-color:var(--teal);}
+.info-modal-head{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px;}
+.info-modal-head h3{margin:0;}
+.info-close{
+  width:38px; height:38px; border:1px solid var(--line); border-radius:50%;
+  background:var(--bg); color:var(--ink); font-size:1.3rem; cursor:pointer;
+}
+.info-row{padding:11px 0; border-bottom:1px solid var(--line);}
+.info-row:last-child{border-bottom:0;}
+.info-label{display:block; font-size:.76rem; color:var(--brick); font-weight:800; text-transform:uppercase; letter-spacing:.6px;}
+.info-value{font-weight:600; color:var(--ink); margin-top:2px;}
+.info-list{padding-left:20px; margin:8px 0 0;}
+.info-list li{margin-bottom:9px;}
+@media(max-width:768px){
+  .nav-info-btn{font-size:.86rem; text-align:left; width:100%;}
+}
+
+
+/* OPENING SCREEN */
+#openingScreen{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(180deg,#173f3a,#2f5233 55%,#f5dfad);color:#fff}
+#openingScreen.hide{animation:openingOut .7s ease forwards;pointer-events:none}
+@keyframes openingOut{to{opacity:0;transform:scale(1.03);visibility:hidden}}
+.opening-sun{position:absolute;width:110px;height:110px;border-radius:50%;background:#E3A430;right:10%;top:9%;box-shadow:0 0 60px #e3a43088}
+.opening-hill{position:absolute;bottom:-12%;left:-5%;width:110%;height:42%;background:#4c7a52;border-radius:50% 50% 0 0}
+.opening-card{position:relative;z-index:2;width:min(760px,90vw);padding:42px 28px 34px;text-align:center;border-radius:28px;background:#14312b99;border:1px solid #ffffff40;backdrop-filter:blur(10px);box-shadow:0 25px 80px #00000055;animation:cardIn 1s ease}
+@keyframes cardIn{from{opacity:0;transform:translateY(25px) scale(.97)}to{opacity:1;transform:none}}
+.opening-eyebrow{display:inline-block;padding:6px 14px;border-radius:99px;background:#e3a43022;border:1px solid #f3d48b99;color:#f3d48b;font-size:.75rem;font-weight:800;letter-spacing:2px;text-transform:uppercase}
+.opening-title{margin:18px 0 4px!important;color:#fff!important;font-size:clamp(2.2rem,7vw,4.5rem)!important;line-height:.98!important;font-weight:900!important}
+.opening-title span{color:#f3d48b}
+.opening-subtitle{margin:8px auto;color:#fff;font-size:clamp(1rem,2.5vw,1.3rem);font-weight:800}
+.opening-tagline{margin:0 auto 24px;color:#f9ecd1;font-style:italic}
+.opening-meta{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-bottom:25px}
+.opening-meta span{padding:7px 11px;border-radius:99px;background:#ffffff14;border:1px solid #ffffff30;font-size:.76rem}
+.opening-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.opening-btn{border:none;border-radius:99px;padding:13px 22px;min-height:46px;font-weight:800;font-family:inherit;cursor:pointer;transition:.2s}
+.opening-btn:hover{transform:translateY(-2px)}
+.opening-start{background:#E3A430;color:#2B2620}
+.opening-teacher{background:#ffffff18;color:#fff;border:1px solid #ffffff55}
+.opening-credit{margin-top:22px;font-size:.72rem;color:#ffffffaa}
+#teacherIntro{display:none;position:fixed;inset:0;z-index:5100;background:#141e19bb;align-items:center;justify-content:center;padding:18px}
+.teacher-panel{width:min(620px,94vw);max-height:85vh;overflow:auto;background:#fffdf8;color:#2b2620;border-radius:22px;padding:25px;border:1px solid #e4d6b4;box-shadow:0 25px 70px #00000055}
+.teacher-close{float:right;border:0;background:#f1e6cd;border-radius:50%;width:34px;height:34px;font-weight:800;cursor:pointer}
+.teacher-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.teacher-grid div{padding:12px;border-radius:10px;background:#f2f8f1;border-left:4px solid #2f5233;font-size:.88rem}
+@media(max-width:600px){.opening-card{padding:30px 18px}.opening-sun{width:75px;height:75px}.teacher-grid{grid-template-columns:1fr}}
+
+
+/* Competition visual refinement */
+.story-svg{
+  max-width:760px;
+  width:100%;
+  border-radius:22px;
+  filter:drop-shadow(0 14px 28px rgba(43,38,32,.12));
+  background:#fff;
+}
+.story-panel.active .story-svg{animation:visualRise .55s ease both;}
+@keyframes visualRise{
+  from{opacity:0;transform:translateY(10px) scale(.985);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+
+
+/* ===== ONLINE COMPETITION EDITION ===== */
+.online-ribbon{
+  position:fixed;right:18px;top:76px;z-index:1200;
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  border:1px solid rgba(255,255,255,.35);border-radius:999px;
+  background:rgba(24,52,43,.86);color:#fff;font-size:.78rem;font-weight:800;
+  box-shadow:0 8px 22px rgba(0,0,0,.16);backdrop-filter:blur(10px)
+}
+.online-dot{width:8px;height:8px;border-radius:50%;background:#75D58A;box-shadow:0 0 0 5px rgba(117,213,138,.14)}
+.student-bar{
+  max-width:980px;margin:0 auto;padding:10px 6vw 0;display:flex;justify-content:flex-end;
+}
+.student-chip{
+  display:flex;align-items:center;gap:9px;background:rgba(255,253,248,.92);
+  border:1px solid var(--line);border-radius:999px;padding:7px 11px;
+  box-shadow:0 5px 16px rgba(43,38,32,.08);font-size:.82rem
+}
+.student-chip button{border:0;background:transparent;color:var(--green);font-weight:800}
+.xp-wrap{display:flex;align-items:center;gap:8px}
+.xp-bar{width:90px;height:7px;background:#eadfca;border-radius:99px;overflow:hidden}
+.xp-fill{height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--brick));transition:width .4s ease}
+.online-card{
+  margin:22px auto 0;max-width:980px;padding:18px 6vw;
+}
+.online-card-inner{
+  background:linear-gradient(135deg,#fffdf8,#f7ecd5);border:1px solid var(--line);
+  border-radius:22px;padding:18px 20px;display:grid;grid-template-columns:1fr auto;
+  gap:18px;align-items:center;box-shadow:var(--shadow)
+}
+.online-card-inner h3{margin-bottom:4px}
+.online-actions{display:flex;gap:8px;flex-wrap:wrap}
+.mini-btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;color:var(--green);font-weight:800}
+.mini-btn.primary{background:var(--green);color:#fff;border-color:var(--green)}
+.toast{
+  position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);
+  opacity:0;pointer-events:none;z-index:7000;background:#25211d;color:#fff;
+  padding:11px 15px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.2);
+  transition:.25s ease;font-size:.9rem
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.student-modal{display:none;position:fixed;inset:0;z-index:6500;background:rgba(15,25,21,.72);align-items:center;justify-content:center;padding:18px}
+.student-modal.open{display:flex}
+.student-box{width:min(460px,100%);background:var(--panel);border-radius:22px;padding:24px;box-shadow:0 25px 70px rgba(0,0,0,.3)}
+.student-box input{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;font:inherit;margin:10px 0 16px}
+@media(max-width:700px){
+ .online-ribbon{top:68px;right:10px;font-size:.7rem}
+ .student-bar{padding-top:42px}
+ .online-card-inner{grid-template-columns:1fr}
+}
+
+
+/* ---------- VISUAL STORY WORLD ---------- */
+.visual-cover{
+  width:min(1180px,96vw); margin:24px auto 10px; display:block;
+  border-radius:28px; box-shadow:0 18px 50px rgba(43,38,32,.20);
+  border:6px solid rgba(255,255,255,.88);
+}
+.visual-note{max-width:900px;margin:10px auto 0;color:var(--ink-soft);font-size:.88rem;}
+.apersepsi-gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0;}
+.apersepsi-card{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 5px 16px rgba(43,38,32,.10);}
+.apersepsi-card img{width:100%;height:150px;object-fit:cover;display:block;}
+.apersepsi-card figcaption{padding:9px 10px;text-align:center;font-weight:700;font-size:.84rem;color:var(--green);}
+.story-photo{width:100%;max-width:760px;aspect-ratio:16/9;object-fit:cover;display:block;margin:0 auto;border-radius:20px;box-shadow:0 10px 28px rgba(43,38,32,.16);border:4px solid #fff;}
+.story-frame{position:relative;}
+.story-number{position:absolute;left:16px;top:16px;z-index:2;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--gold);color:#fff;font-weight:900;font-size:1.15rem;border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.18);}
+@media(max-width:900px){.apersepsi-gallery{grid-template-columns:1fr 1fr;}}
+@media(max-width:520px){.apersepsi-gallery{grid-template-columns:1fr;}.apersepsi-card img{height:190px;}.visual-cover{border-width:3px;border-radius:18px;}}
+
+</style>
+</head>
+<body>
+
+<!-- OPENING EXPERIENCE -->
+<section id="openingScreen" aria-label="Opening Screen">
+  <div class="opening-sun"></div>
+  <div class="opening-hill"></div>
+  <div class="opening-card">
+    <div class="opening-eyebrow">English Learning Experience · Grade 8</div>
+    <h1 class="opening-title">MY VILLAGE<br><span>MY STORY</span></h1>
+    <p class="opening-subtitle">UNFORGETTABLE VILLAGE MEMORIES</p>
+    <p class="opening-tagline">“Every village has a story. What is yours?”</p>
+    <div class="opening-meta">
+      <span>📘 Bahasa Inggris</span><span>🎒 Kelas 8 · TP 8.1</span>
+      <span>🌾 Konteks Desa</span><span>🧭 Pembelajaran Mendalam</span>
+    </div>
+    <div class="opening-actions">
+      <button class="opening-btn opening-start" onclick="startLearningExperience()">✨ START THE JOURNEY</button>
+      <button class="opening-btn opening-teacher" onclick="openTeacherIntro()">👨‍🏫 TEACHER MODE</button>
+    </div>
+    <div class="opening-credit">Media Pembelajaran Interaktif · UPT SMPN 4 Mappedeceng</div>
+  </div>
+</section>
+
+<div id="teacherIntro" role="dialog" aria-modal="true">
+  <div class="teacher-panel">
+    <button class="teacher-close" onclick="closeTeacherIntro()">×</button>
+    <div class="eyebrow">Teacher Mode</div>
+    <h2>Teacher Dashboard — Media Overview</h2>
+    <p>Ringkasan desain pembelajaran untuk melihat hubungan materi, pedagogi, dan teknologi.</p>
+    <div class="teacher-grid">
+      <div><b>🎯 Target</b><br>TP 8.1 — Recount pengalaman masa lalu.</div>
+      <div><b>📚 Pendekatan</b><br>Genre-Based Approach + Pembelajaran Mendalam.</div>
+      <div><b>🧩 TPACK</b><br>CK + PK + TK diintegrasikan dalam aktivitas.</div>
+      <div><b>🎮 Teknologi</b><br>Edugame, Story Builder, TTS, dan kuis.</div>
+      <div><b>🌾 Konteks</b><br>Pengalaman liburan/perayaan di desa.</div>
+      <div><b>📱 Akses</b><br>Responsif untuk HP, tablet, laptop, dan Papan Interaktif Digital.</div>
+    </div>
+    <button class="btn" onclick="closeTeacherIntro();startLearningExperience()">🚀 Masuk ke Media Pembelajaran</button>
+  </div>
+</div>
+
+
+<div id="progressbar"></div>
+
+<header class="nav">
+  <div class="brand"><span class="flagdot"></span> My Village Tale</div>
+  <button id="navToggle" aria-label="Menu">☰</button>
+  <nav class="links" id="navLinks">
+    <a href="#awal" data-goto="awal">Awal</a>
+    <a href="#pahami" data-goto="pahami">Memahami</a>
+    <a href="#edugame" data-goto="edugame">Edugame</a>
+    <a href="#pasangan" data-goto="pasangan">Kerja Pasangan</a>
+    <a href="#labmaya" data-goto="labmaya">Lab Maya</a>
+    <a href="#penutup" data-goto="penutup">Refleksi</a>
+    <a href="#kuis" data-goto="kuis">Kuis</a>
+    <a href="#rangkuman" data-goto="rangkuman">Rangkuman</a>
+    <button type="button" class="nav-info-btn" data-modal-open="developerModal">👨‍🏫 Pengembang</button>
+    <button type="button" class="nav-info-btn" data-modal-open="referenceModal">📚 Referensi</button>
+  </nav>
+</header>
+
+<div class="online-ribbon"><span class="online-dot"></span> ONLINE LEARNING EXPERIENCE</div>
+<div class="student-bar">
+  <div class="student-chip">
+    <span>👤</span><strong id="studentNameLabel">Guest Learner</strong>
+    <span class="xp-wrap">⭐ <span id="xpText">0 XP</span><span class="xp-bar"><span class="xp-fill" id="xpFill"></span></span></span>
+    <button type="button" onclick="openStudentModal()">Edit</button>
+  </div>
+</div>
+<div class="online-card">
+  <div class="online-card-inner">
+    <div>
+      <div class="eyebrow" style="margin-bottom:5px">ONLINE MODE</div>
+      <h3>Build your village story step by step.</h3>
+      <p style="margin:0;color:var(--ink-soft)">Nama dan progres dasar disimpan di browser ini. Fitur AI/database dapat dihubungkan melalui Vercel Functions saat tahap pengembangan lanjutan.</p>
+    </div>
+    <div class="online-actions">
+      <button class="mini-btn primary" onclick="openStudentModal()">👤 Set Student Name</button>
+      <button class="mini-btn" onclick="speakOnlineIntro()">🔊 Listen</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="onlineToast"></div>
+<div class="student-modal" id="studentModal" role="dialog" aria-modal="true">
+  <div class="student-box">
+    <div class="eyebrow">Student Profile</div>
+    <h2>Who is the storyteller?</h2>
+    <p style="color:var(--ink-soft)">Nama ini digunakan pada pengalaman belajar di perangkat/browser ini.</p>
+    <input id="studentNameInput" type="text" maxlength="40" placeholder="Contoh: Alya">
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="mini-btn" onclick="closeStudentModal()">Batal</button>
+      <button class="mini-btn primary" onclick="saveStudentName()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ===================== HERO / COVER ===================== -->
+<section class="hero screen" id="home">
+  <div class="eyebrow">Bahasa Inggris · Kelas 8 · TP 8.1</div>
+  <h1>Unforgettable Village Memories</h1>
+  <p class="sub">My Tale, My Village — Belajar menceritakan kembali pengalaman liburan atau perayaan di desa dengan Bahasa Inggris sederhana, runtut, dan percaya diri.</p>
+
+  <img class="visual-cover" src="assets/hero-cover.png" alt="Unforgettable Village Memories — My Village, My Story" loading="eager">
+
+  <div class="meta-row">
+    <span class="meta-chip">📘 Bahasa Inggris</span>
+    <span class="meta-chip">🎒 Kelas 8</span>
+    <span class="meta-chip">⏱️ Pertemuan 1 · ± 120 menit</span>
+    <span class="meta-chip">🧭 Genre-Based Approach</span>
+  </div>
+  <button class="btn" data-goto="petunjuk">Mulai Belajar</button>
+  <div class="bunting" style="margin-top:36px;">
+    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+</section>
+
+<!-- ===================== PETUNJUK ===================== -->
+<section class="section screen" id="petunjuk">
+  <div class="eyebrow">Petunjuk</div>
+  <h2>Cara Menggunakan Media Ini</h2>
+  <div class="grid3">
+    <div class="card"><h4>1. Jelajahi Bebas</h4><p>Gunakan menu di atas untuk langsung menuju bagian yang kamu mau, atau gulir dari atas ke bawah secara berurutan.</p></div>
+    <div class="card"><h4>2. Sentuh & Coba</h4><p>Semua kartu, tombol, dan permainan bisa disentuh dengan jari di HP/tablet atau diklik dengan mouse di laptop.</p></div>
+    <div class="card"><h4>3. Kerjakan Sampai Selesai</h4><p>Selesaikan Edugame, Lab Maya, dan Kuis untuk melihat rangkuman hasil belajarmu di halaman penutup.</p></div>
+  </div>
+  <div class="toc">
+    <a href="#awal" data-goto="awal"><span>01</span>Kegiatan Awal</a>
+    <a href="#pahami" data-goto="pahami"><span>02</span>Fase Memahami</a>
+    <a href="#edugame" data-goto="edugame"><span>03</span>Edugame Sortir</a>
+    <a href="#pasangan" data-goto="pasangan"><span>04</span>Kerja Pasangan</a>
+    <a href="#labmaya" data-goto="labmaya"><span>05</span>Lab Maya</a>
+    <a href="#penutup" data-goto="penutup"><span>06</span>Refleksi</a>
+    <a href="#kuis" data-goto="kuis"><span>07</span>Kuis</a>
+    <a href="#rangkuman" data-goto="rangkuman"><span>08</span>Rangkuman</a>
+    <a href="#" data-modal-open="developerModal"><span>09</span>Pengembang</a>
+    <a href="#" data-modal-open="referenceModal"><span>10</span>Referensi</a>
+  </div>
+</section>
+
+<!-- ===================== TUJUAN ===================== -->
+<section class="section section-alt screen" id="tujuan">
+  <div class="tp-box">
+    <p style="margin:0;">Murid mampu <b>menceritakan kembali pengalaman masa lalu</b> secara lisan dengan struktur sederhana terkait kegiatan liburan atau perayaan di desa secara <b>runtut, tepat, dan percaya diri</b>.</p>
+  </div>
+  <div class="pemantik">
+    <h4>🔥 Pertanyaan Pemantik</h4>
+    <p><b>1.</b> What was the most exciting thing you did during the last holiday or festival in your village?</p>
+    <textarea placeholder="Tulis jawabanmu di sini..." id="pemantik1"></textarea>
+    <p style="margin-top:14px;"><b>2.</b> Why do you think telling our village stories to others is important?</p>
+    <textarea placeholder="Tulis jawabanmu di sini..." id="pemantik2"></textarea>
+  </div>
+</section>
+
+<!-- ===================== KEGIATAN AWAL ===================== -->
+<section class="section screen" id="awal">
+  <div class="eyebrow">Kegiatan Awal · 20 Menit</div>
+  <h2>Selamat Datang, Anak Desa! 🌾</h2>
+  <p><i>"Good morning, class! How are you today?"</i> — Sebelum mulai, mari kita berdoa bersama dan menyapa satu sama lain.</p>
+  <div class="card">
+    <h4>Apersepsi: Perayaan di Desa Mappedeceng</h4>
+    <p>Perhatikan suasana perayaan 17 Agustus dan pesta panen berikut ini. Ingat-ingat: pernahkah kamu ikut acara serupa di desamu?</p>
+    
+<div class="apersepsi-gallery" aria-label="Gambar apersepsi">
+  <figure class="apersepsi-card"><img src="assets/apersepsi-village.jpg" alt="Rumah desa" loading="lazy"><figcaption>🏠 Village House</figcaption></figure>
+  <figure class="apersepsi-card"><img src="assets/apersepsi-ricefield.jpg" alt="Sawah dan pegunungan" loading="lazy"><figcaption>🌾 Rice Field</figcaption></figure>
+  <figure class="apersepsi-card"><img src="assets/apersepsi-games.jpg" alt="Permainan tradisional di desa" loading="lazy"><figcaption>⚽ Traditional Games</figcaption></figure>
+  <figure class="apersepsi-card"><img src="assets/apersepsi-food.jpg" alt="Makan bersama keluarga" loading="lazy"><figcaption>🍲 Traditional Food</figcaption></figure>
+  <figure class="apersepsi-card"><img src="assets/apersepsi-festival.jpg" alt="Festival desa pada malam hari" loading="lazy"><figcaption>🎉 Village Festival</figcaption></figure>
+  <figure class="apersepsi-card"><img src="assets/apersepsi-view.jpg" alt="Pemandangan desa saat matahari terbenam" loading="lazy"><figcaption>🌅 Beautiful View</figcaption></figure>
+</div>
+
+    <p><b>Pertanyaan Guru:</b> "Siapa yang pernah ikut lomba atau acara perayaan di desa seperti di gambar ini? Bagaimana perasaan kalian waktu itu?"</p>
+    <p style="color:var(--teal); font-weight:700;">🎯 Hari ini kita akan belajar mengenali kata-kata dalam Bahasa Inggris yang dipakai untuk menceritakan kegiatan di masa lalu.</p>
+  </div>
+</section>
+
+<!-- ===================== FASE MEMAHAMI ===================== -->
+<section class="section section-alt screen" id="pahami">
+  <div class="eyebrow">Kegiatan Inti · Fase 1: Memahami</div>
+  <h2>Cerita Bergambar: A Day at the Village Festival</h2>
+  <p style="font-size:.88rem;color:var(--ink-soft);">*Catatan: video YouTube pada modul asli diganti cerita bergambar beranimasi ini agar media tetap bisa dibuka tanpa internet.</p>
+  <p class="visual-note">✨ Visual cerita diperbarui menjadi <b>illustrated story world</b> yang konsisten untuk apersepsi dan empat adegan cerita.</p>
+
+  <div class="card story-wrap">
+    <div class="story-panel active" data-i="0">
+      <div class="story-frame"><span class="story-number">1</span><img class="story-photo" src="assets/story-1-grandma.jpg" alt="Wulan mengunjungi rumah nenek di desa" loading="lazy"></div>
+      <p class="story-caption">Wulan <b data-say="visited">visited</b> her grandmother's house in the village during the festival.</p>
+    </div>
+    <div class="story-panel" data-i="1">
+      <div class="story-frame"><span class="story-number">2</span><img class="story-photo" src="assets/story-2-games.jpg" alt="Wulan bermain bersama teman-temannya di desa" loading="lazy"></div>
+      <p class="story-caption">She <b data-say="played">played</b> traditional games with her friends near the rice field.</p>
+    </div>
+    <div class="story-panel" data-i="2">
+      <div class="story-frame"><span class="story-number">3</span><img class="story-photo" src="assets/story-3-food.jpg" alt="Wulan makan bersama keluarga pada malam hari" loading="lazy"></div>
+      <p class="story-caption">In the evening, her family <b data-say="ate">ate</b> traditional food together under the festival lights.</p>
+    </div>
+    <div class="story-panel" data-i="3">
+      <div class="story-frame"><span class="story-number">4</span><img class="story-photo" src="assets/story-4-festival.jpg" alt="Wulan menikmati festival desa" loading="lazy"></div>
+      <p class="story-caption">Wulan felt very <b data-say="happy">happy</b> — she loved every moment in her village.</p>
+    </div>
+    <div class="story-controls">
+      <button class="btn small outline" id="storyPrev">← Sebelumnya</button>
+      <button class="btn small gold" id="storyPlay">▶ Putar Otomatis</button>
+      <button class="btn small outline" id="storyNext">Berikutnya →</button>
+    </div>
+    <div class="dots" id="storyDots"></div>
+  </div>
+
+  <h3 style="margin-top:34px;">Kosa Kata Kunci</h3>
+  <p style="font-size:.88rem;color:var(--ink-soft);">Sentuh/klik setiap kata untuk mendengar pelafalannya (jika perangkatmu mendukung).</p>
+  <div class="vocab-list" id="vocabList"></div>
+
+  <h3 style="margin-top:34px;">🧩 Cocokkan Kegiatan dengan Kata Kerjanya</h3>
+  <p>Klik satu kartu kata di kiri, lalu klik kartu kegiatan di kanan yang cocok.</p>
+  <div class="match-wrap">
+    <div class="match-col"><h4>Kata Kerja</h4><div id="matchWords"></div></div>
+    <div class="match-col"><h4>Kegiatan di Desa</h4><div id="matchPics"></div></div>
+  </div>
+  <div id="matchStatus">Kecocokan: 0 / 6</div>
+</section>
+
+<!-- ===================== EDUGAME ===================== -->
+<section class="section screen" id="edugame">
+  <div class="eyebrow">Edugame · Sortir Waktu</div>
+  <h2>🎮 Sekarang atau Dulu?</h2>
+  <p>Kelompokkan kata kerja ke dalam kotak yang tepat sebelum waktu habis! Klik kata, lalu klik kotak tujuannya.</p>
+  <div class="card">
+    <div class="sort-hud">
+      <span class="hud-chip">⏱️ Waktu: <span id="sortTimer">60</span>s</span>
+      <span class="hud-chip">⭐ Skor: <span id="sortScore">0</span></span>
+      <button class="btn small" id="sortStart">Mulai Permainan</button>
+      <button class="btn small outline" id="sortReset">Main Lagi</button>
+    </div>
+    <div class="chip-pool" id="chipPool"></div>
+    <div class="buckets">
+      <div class="bucket" data-bucket="present"><h4>🟢 Sekarang (Present)</h4><div class="dropped" id="dropPresent"></div></div>
+      <div class="bucket" data-bucket="past"><h4>🟤 Dulu (Past)</h4><div class="dropped" id="dropPast"></div></div>
+    </div>
+    <div id="sortResult" style="margin-top:14px;font-weight:700;"></div>
+  </div>
+</section>
+
+<!-- ===================== KERJA PASANGAN ===================== -->
+<section class="section section-alt screen" id="pasangan">
+  <div class="eyebrow">Kerja Berpasangan</div>
+  <h2>✏️ Kegiatanku Minggu/Bulan Lalu di Desa</h2>
+  <p>Bersama pasanganmu, tuliskan 3 kegiatan yang pernah kamu lakukan di desa. Gunakan kata kerja bentuk lampau!</p>
+  <div class="card">
+    <div class="pair-item"><label>1. Kegiatan pertama</label><input type="text" placeholder="Contoh: I visited my grandmother's farm."></div>
+    <div class="pair-item"><label>2. Kegiatan kedua</label><input type="text" placeholder="Contoh: We played traditional games."></div>
+    <div class="pair-item"><label>3. Kegiatan ketiga</label><input type="text" placeholder="Contoh: I ate rendang with my family."></div>
+    <button class="btn small" id="pairSave">Simpan Kalimatku</button>
+    <span id="pairStatus" style="margin-left:10px;font-weight:700;color:var(--green);"></span>
+  </div>
+</section>
+
+<!-- ===================== LAB MAYA ===================== -->
+<section class="section screen" id="labmaya">
+  <div class="eyebrow">Lab Maya · Language Lab</div>
+  <h2>🔬 Village Story Builder</h2>
+  <p>Susun kalimatmu sendiri, lalu tekan <b>"Ubah ke Bentuk Lampau"</b> untuk mengamati bagaimana kata kerja berubah — persis seperti eksperimen sains, tapi untuk tata bahasa!</p>
+  <div class="lab-panel">
+    <div class="lab-controls">
+      <div><label>Subjek</label>
+        <select id="labSubject"><option>I</option><option>My family</option><option>We</option><option>My friends</option></select>
+      </div>
+      <div><label>Kata Kerja (bentuk dasar)</label>
+        <select id="labVerb">
+          <option value="visit">visit</option><option value="play">play</option><option value="eat">eat</option>
+          <option value="watch">watch</option><option value="join">join</option><option value="dance">dance</option>
+          <option value="run">run</option><option value="go">go</option><option value="feel">feel</option>
+        </select>
+      </div>
+      <div><label>Tempat / Acara</label>
+        <select id="labPlace"><option>the village festival</option><option>my grandmother's rice field</option><option>the harvest party</option><option>the flag ceremony</option></select>
+      </div>
+      <div><label>Waktu</label>
+        <select id="labTime"><option>last week</option><option>last month</option><option>last Independence Day</option><option>last year</option></select>
+      </div>
+    </div>
+    <div class="sentence-box" id="labSentence">I <span class="verb-new">visit</span> the village festival last week.</div>
+    <div class="rule-note" id="labRule"></div>
+    <div class="story-controls">
+      <button class="btn gold small" id="labTransform">⚗️ Ubah ke Bentuk Lampau</button>
+      <button class="btn small outline" id="labRecord">📒 Catat Percobaan</button>
+    </div>
+    <div class="lab-log">
+      <h4>Catatan Pengamatan (<span id="labCount">0</span> percobaan)</h4>
+      <ul id="labLog"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PENUTUP / REFLEKSI ===================== -->
+<section class="section section-alt screen" id="penutup">
+  <div class="eyebrow">Kegiatan Penutup · Fase 3: Merefleksi</div>
+  <h2>Simpulan & Refleksi</h2>
+  <div class="card">
+    <h4>📌 Simpulan Bersama</h4>
+    <p>Untuk menceritakan masa lalu, kita mengubah kata kerja menjadi <b>bentuk lampau (Past Tense)</b> — biasanya dengan menambahkan <b>-ed</b> (visit → visited), atau berubah bentuk sama sekali untuk kata kerja tidak beraturan (eat → ate, go → went).</p>
+  </div>
+  <div class="card" style="margin-top:18px;">
+    <h4>🎯 Refleksi Ketuntasan</h4>
+    <p>Tempelkan "stiker" perasaanmu tentang pelajaran hari ini:</p>
+    <div class="sticker-row">
+      <button class="sticker-btn green" data-r="Paham 😊">🟢 Paham</button>
+      <button class="sticker-btn yellow" data-r="Ragu-ragu 🤔">🟡 Ragu-ragu</button>
+      <button class="sticker-btn red" data-r="Butuh Bantuan 🙋">🔴 Butuh Bantuan</button>
+    </div>
+    <div id="reflectResult"></div>
+  </div>
+  <div class="card" style="margin-top:18px;">
+    <h4>💬 Refleksi Singkat</h4>
+    <p>Sebutkan 1 kata kerja lampau yang paling kamu ingat hari ini!</p>
+    <input class="mini-input" id="reflectWord" placeholder="Contoh: visited">
+    <button class="btn small" id="reflectSave" style="margin-top:10px;">Simpan</button>
+    <span id="reflectWordStatus" style="margin-left:8px;font-weight:700;color:var(--green);"></span>
+  </div>
+</section>
+
+<!-- ===================== KUIS ===================== -->
+<section class="section screen" id="kuis">
+  <div class="eyebrow">Evaluasi</div>
+  <h2>📝 Uji Pemahamanmu</h2>
+  <div class="card">
+    <div class="quiz-progress"><i id="quizBar"></i></div>
+    <div id="quizArea"></div>
+    <div id="quizFinal">
+      <h3>Skor Akhir: <span id="quizScoreText"></span></h3>
+      <p id="quizFeedback"></p>
+      <button class="btn" id="quizRetry">🔁 Coba Lagi</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RANGKUMAN ===================== -->
+<section class="section section-alt screen" id="rangkuman">
+  <div class="eyebrow">Rangkuman</div>
+  <h2>Poin-Poin Kunci Hari Ini</h2>
+  <div class="grid3">
+    <div class="card"><h4>🗣️ Topik</h4><p>Menceritakan pengalaman liburan/perayaan desa dalam Bahasa Inggris.</p></div>
+    <div class="card"><h4>⚙️ Struktur</h4><p>Gunakan kata kerja bentuk lampau (Past Tense): +ed untuk kata kerja beraturan, bentuk khusus untuk yang tidak beraturan.</p></div>
+    <div class="card"><h4>📚 Kosa Kata</h4><p>visited, played, ate, watched, joined, danced, felt happy — kata kunci seputar kegiatan desa.</p></div>
+  </div>
+</section>
+
+<!-- ===================== REFERENSI ===================== -->
+<section class="section screen" id="referensi">
+  <ul>
+    <li>Kemendikbudristek — Buku Siswa Bahasa Inggris Kelas VIII, Kurikulum Merdeka.</li>
+    <li>Modul Ajar Genre-Based Approach: siklus BKOF – MOT – JCOT – ICOT.</li>
+    <li>Kamus daring Bahasa Inggris untuk pengayaan kosa kata (perlu koneksi internet, bersifat opsional).</li>
+  </ul>
+</section>
+
+<!-- ===================== SELESAI ===================== -->
+<section class="hero screen" id="selesai">
+  <div class="bunting" style="margin-bottom:24px;"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <h2 style="font-size:clamp(1.6rem,4vw,2.4rem);">🎉 Great Job, Village Storyteller!</h2>
+  <p class="sub">Berikut rangkuman perjalanan belajarmu hari ini:</p>
+  <div class="card" style="text-align:left; max-width:520px; margin:0 auto;">
+    <div class="badge-list" id="recapBadges"></div>
+  </div>
+  <div style="margin-top:26px;">
+    <button class="btn outline" id="restartBtn">↺ Ulangi dari Awal</button>
+  </div>
+</section>
+
+
+
+<!-- ===================== PENGEMBANG & REFERENCE ===================== -->
+<div class="info-modal" id="developerModal" role="dialog" aria-modal="true" aria-labelledby="developerTitle">
+  <div class="info-modal-card">
+    <div class="info-modal-head">
+      <h3 id="developerTitle">👨‍🏫 Profil Pengembang</h3>
+      <button type="button" class="info-close" data-modal-close="developerModal" aria-label="Tutup">×</button>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Nama</span>
+      <div class="info-value">Lapado, S.Pd</div>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Instansi</span>
+      <div class="info-value">UPT SMPN 4 Mappedeceng</div>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Mata Pelajaran</span>
+      <div class="info-value">Bahasa Inggris</div>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Kelas / TP</span>
+      <div class="info-value">Kelas 8 · TP 8.1</div>
+    </div>
+    <div class="info-row">
+      <span class="info-label">Media</span>
+      <div class="info-value">Unforgettable Village Memories — My Tale, My Village</div>
+    </div>
+    <div style="text-align:right;margin-top:18px;">
+      <button type="button" class="btn small" data-modal-close="developerModal">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<div class="info-modal" id="referenceModal" role="dialog" aria-modal="true" aria-labelledby="referenceTitle">
+  <div class="info-modal-card reference">
+    <div class="info-modal-head">
+      <h3 id="referenceTitle">📚 Referensi & Sumber</h3>
+      <button type="button" class="info-close" data-modal-close="referenceModal" aria-label="Tutup">×</button>
+    </div>
+    <p style="color:var(--ink-soft);">Acuan yang tercantum dalam media pembelajaran ini:</p>
+    <ol class="info-list">
+      <li><strong>📘 Buku Panduan Bahasa Inggris</strong><br>Kemendikbudristek — Buku Panduan/Siswa Bahasa Inggris Kelas VIII, Kurikulum Merdeka, sebagai acuan materi pembelajaran Bahasa Inggris Fase D.</li>
+      <li><strong>🧩 TPACK (Technological Pedagogical Content Knowledge)</strong><br>Kerangka perancangan yang mengintegrasikan Content Knowledge (CK), Pedagogical Knowledge (PK), dan Technological Knowledge (TK) agar teknologi digunakan sesuai tujuan pembelajaran.</li>
+      <li><strong>🤖 OpenAI ChatGPT</strong><br>Digunakan sebagai pendukung pengembangan ide, penyusunan materi, aktivitas pembelajaran, dan perancangan media interaktif.</li>
+      <li><strong>✨ GEM Gemini AI</strong><br>Digunakan sebagai pendukung pengembangan materi, ide aktivitas, dan pengayaan media pembelajaran berbasis AI.</li>
+      <li><strong>📚 Genre-Based Approach</strong><br>Pengorganisasian pembelajaran mengikuti tahapan BKOF – MOT – JCOT – ICOT sesuai kebutuhan pembelajaran teks recount.</li>
+    </ol>
+    <div style="text-align:right;margin-top:18px;">
+      <button type="button" class="btn secondary small" data-modal-close="referenceModal">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<footer>Dibuat untuk Mapel Bahasa Inggris · Kelas 8 · TP 8.1 — Visual Story World + Edugame + Story Builder.</footer>
+
+<script>
+
+function startLearningExperience(){
+  var x=document.getElementById('openingScreen');
+  if(!x)return;
+  x.classList.add('hide');
+  setTimeout(function(){x.style.display='none';if(typeof showScreen==='function')showScreen('petunjuk');},720);
+}
+function openTeacherIntro(){document.getElementById('teacherIntro').style.display='flex'}
+function closeTeacherIntro(){document.getElementById('teacherIntro').style.display='none'}
+
+/* ---------- helper ---------- */
+function $(s,ctx){return (ctx||document).querySelector(s);}
+function $all(s,ctx){return Array.from((ctx||document).querySelectorAll(s));}
+
+var state = {
+  matchDone:false, edugameScore:0, edugamePlayed:false,
+  pairSaved:false, labExperiments:0, reflection:null, reflectionWord:null,
+  quizScore:0, quizDone:false, quizTotal:0
+};
+
+/* ---------- navigasi berbasis "layar" (satu bagian tampil, lainnya disembunyikan) ---------- */
+var screenOrder = ['home','petunjuk','tujuan','awal','pahami','edugame','pasangan','labmaya','penutup','kuis','rangkuman','referensi','selesai'];
+
+function showScreen(id){
+  if(screenOrder.indexOf(id)===-1) return;
+  $all('.screen').forEach(function(s){ s.classList.toggle('hidden', s.id!==id); });
+  window.scrollTo({top:0, behavior:'smooth'});
+  $all('nav.links a').forEach(function(a){ a.classList.toggle('nav-active', a.getAttribute('data-goto')===id); });
+  var idx = screenOrder.indexOf(id);
+  var pct = ((idx+1)/screenOrder.length)*100;
+  $('#progressbar').style.width = pct+'%';
+  if(isMobile()){ var nl=$('#navLinks'); if(nl) nl.style.display='none'; }
+}
+
+function isMobile(){ return window.matchMedia('(max-width:768px)').matches; }
+
+function attachGoto(el){
+  el.addEventListener('click', function(e){
+    e.preventDefault();
+    showScreen(el.getAttribute('data-goto'));
+  });
+}
+
+function initStepNav(){
+  screenOrder.forEach(function(id, idx){
+    var el = document.getElementById(id);
+    if(!el) return;
+    var nav = document.createElement('div');
+    nav.className = 'step-nav';
+    var html = '';
+    if(idx>0){ html += '<button class="btn small outline" data-goto="'+screenOrder[idx-1]+'">← Kembali</button>'; }
+    else { html += '<span class="spacer"></span>'; }
+    if(idx<screenOrder.length-1){ html += '<button class="btn small" data-goto="'+screenOrder[idx+1]+'">Lanjut →</button>'; }
+    nav.innerHTML = html;
+    el.appendChild(nav);
+  });
+}
+initStepNav();
+$all('[data-goto]').forEach(attachGoto);
+showScreen('home');
+
+/* ---------- progress bar ---------- */
+
+/* ---------- mobile nav ---------- */
+var mq = window.matchMedia('(max-width:768px)');
+function navResponsive(){
+  if(mq.matches){ $('#navToggle').style.display='block'; $('#navLinks').style.cssText='display:none; position:absolute; top:56px; right:5vw; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px; flex-direction:column; box-shadow:var(--shadow); z-index:950;'; }
+  else{ $('#navToggle').style.display='none'; $('#navLinks').style.cssText='display:flex;'; }
+}
+navResponsive();
+mq.addEventListener ? mq.addEventListener('change',navResponsive) : mq.addListener(navResponsive);
+$('#navToggle').addEventListener('click', function(){
+  var nl = $('#navLinks');
+  if(mq.matches){ nl.style.display = (nl.style.display==='flex') ? 'none' : 'flex'; }
+});
+$all('#navLinks a').forEach(function(a){ a.addEventListener('click', function(){ if(mq.matches){ $('#navLinks').style.display='none'; } }); });
+
+/* ---------- bunting row generator (apersepsi image) ---------- */
+(function(){
+  var row = document.getElementById('buntingRow');
+  var colors = ['#E3A430','#B85C38','#1F6F78'];
+  var s = '';
+  for(var i=0;i<12;i++){
+    var x = 65 + i*40;
+    s += '<polygon points="'+x+',35 '+(x+16)+',35 '+(x+8)+',58" fill="'+colors[i%3]+'"/>';
+  }
+  row.innerHTML = s;
+})();
+
+/* ---------- text to speech (optional, offline-capable on most OS) ---------- */
+function speak(text){
+  try{
+    if('speechSynthesis' in window){
+      var u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US'; u.rate = 0.85;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    }
+  }catch(e){ /* graceful fallback: silently ignore if unsupported */ }
+}
+
+/* ---------- vocab chips ---------- */
+var vocabWords = ['visited','played','ate','watched','joined','happy','village'];
+(function(){
+  var wrap = $('#vocabList');
+  vocabWords.forEach(function(w){
+    var c = document.createElement('button');
+    c.className='vocab-chip'; c.textContent = '🔊 '+w;
+    c.addEventListener('click', function(){ speak(w); });
+    wrap.appendChild(c);
+  });
+})();
+
+/* ---------- story panels ---------- */
+var storyIdx = 0;
+var panels = $all('.story-panel');
+function showPanel(i){
+  panels.forEach(function(p,idx){ p.classList.toggle('active', idx===i); });
+  $all('#storyDots span').forEach(function(d,idx){ d.classList.toggle('on', idx===i); });
+  storyIdx = i;
+}
+(function(){
+  var dots = $('#storyDots');
+  panels.forEach(function(_,i){ var d=document.createElement('span'); if(i===0)d.className='on'; dots.appendChild(d); });
+})();
+$('#storyPrev').addEventListener('click', function(){ showPanel((storyIdx-1+panels.length)%panels.length); });
+$('#storyNext').addEventListener('click', function(){ showPanel((storyIdx+1)%panels.length); });
+var storyTimer=null;
+$('#storyPlay').addEventListener('click', function(){
+  var btn=this;
+  if(storyTimer){ clearInterval(storyTimer); storyTimer=null; btn.textContent='▶ Putar Otomatis'; return; }
+  btn.textContent='⏸ Berhenti';
+  storyTimer = setInterval(function(){ showPanel((storyIdx+1)%panels.length); }, 2600);
+});
+$all('.story-caption b').forEach(function(b){ b.addEventListener('click', function(){ speak(b.getAttribute('data-say')); }); });
+
+/* ---------- matching game ---------- */
+var matchData = [
+  {id:'played', word:'played', pic:'🏃 Racing games at the village square'},
+  {id:'ate', word:'ate', pic:'🍛 Family dinner under festival lights'},
+  {id:'visited', word:'visited', pic:'🏠 Visiting grandmother\'s house'},
+  {id:'watched', word:'watched', pic:'🎆 Watching the fireworks'},
+  {id:'joined', word:'joined', pic:'🎉 Joining the village parade'},
+  {id:'danced', word:'danced', pic:'💃 Dancing the traditional dance'}
+];
+var picsShuffled = matchData.slice().sort(function(){return Math.random()-0.5;});
+var selectedWord=null, matchedCount=0;
+(function(){
+  var w = $('#matchWords'), p = $('#matchPics');
+  matchData.forEach(function(item){
+    var el = document.createElement('div'); el.className='match-item'; el.textContent=item.word; el.dataset.id=item.id;
+    el.addEventListener('click', function(){
+      if(el.classList.contains('correct'))return;
+      $all('.match-item',w).forEach(function(x){x.classList.remove('selected');});
+      el.classList.add('selected'); selectedWord = item.id;
+    });
+    w.appendChild(el);
+  });
+  picsShuffled.forEach(function(item){
+    var el = document.createElement('div'); el.className='match-item'; el.textContent=item.pic; el.dataset.id=item.id;
+    el.addEventListener('click', function(){
+      if(!selectedWord || el.classList.contains('correct'))return;
+      if(selectedWord===item.id){
+        el.classList.add('correct');
+        $all('.match-item',w).forEach(function(x){ if(x.dataset.id===selectedWord) x.classList.add('correct'); });
+        matchedCount++; selectedWord=null;
+        $('#matchStatus').textContent = 'Kecocokan: '+matchedCount+' / 6';
+        if(matchedCount===6){ $('#matchStatus').innerHTML='🎉 Kecocokan: 6 / 6 — Semua benar! Kamu hebat!'; state.matchDone=true; if(window.addOnlineXP) addOnlineXP(20); updateRecap(); }
+      } else {
+        el.classList.add('wrong'); setTimeout(function(){el.classList.remove('wrong');},300);
+        $all('.match-item',w).forEach(function(x){ if(x.dataset.id===selectedWord){ x.classList.add('wrong'); setTimeout(function(){x.classList.remove('wrong');},300);} });
+        selectedWord=null;
+      }
+    });
+    p.appendChild(el);
+  });
+})();
+
+/* ---------- edugame sort ---------- */
+var sortWords = [
+  {w:'play', cat:'present'},{w:'played', cat:'past'},{w:'eat', cat:'present'},{w:'ate', cat:'past'},
+  {w:'visit', cat:'present'},{w:'visited', cat:'past'},{w:'watch', cat:'present'},{w:'watched', cat:'past'},
+  {w:'go', cat:'present'},{w:'went', cat:'past'},{w:'feel', cat:'present'},{w:'felt', cat:'past'}
+];
+var sortSelected=null, sortScore=0, sortTimeLeft=60, sortInterval=null, sortActive=false, sortRemaining=0;
+function renderChips(){
+  var pool = $('#chipPool'); pool.innerHTML='';
+  var shuffled = sortWords.slice().sort(function(){return Math.random()-0.5;});
+  shuffled.forEach(function(item){
+    var b = document.createElement('button'); b.className='word-chip'; b.textContent=item.w; b.dataset.cat=item.cat;
+    b.addEventListener('click', function(){
+      if(!sortActive)return;
+      $all('.word-chip').forEach(function(x){x.classList.remove('selected');});
+      b.classList.add('selected'); sortSelected=b;
+    });
+    pool.appendChild(b);
+  });
+  sortRemaining = shuffled.length;
+}
+renderChips();
+$all('.bucket').forEach(function(bk){
+  bk.addEventListener('click', function(){
+    if(!sortActive || !sortSelected)return;
+    var cat = bk.dataset.bucket;
+    var correct = sortSelected.dataset.cat===cat;
+    var target = cat==='present' ? $('#dropPresent') : $('#dropPast');
+    var tag = document.createElement('span'); tag.textContent = sortSelected.textContent + (correct?' ✅':' ❌');
+    target.appendChild(tag);
+    if(correct){ sortScore+=10; $('#sortScore').textContent=sortScore; }
+    sortSelected.remove(); sortSelected=null; sortRemaining--;
+    if(sortRemaining<=0){ endSort(); }
+  });
+});
+function startSort(){
+  sortActive=true; sortScore=0; sortTimeLeft=60; $('#sortScore').textContent=0; $('#sortTimer').textContent=60;
+  $('#dropPresent').innerHTML=''; $('#dropPast').innerHTML=''; $('#sortResult').textContent='';
+  renderChips();
+  clearInterval(sortInterval);
+  sortInterval = setInterval(function(){
+    sortTimeLeft--; $('#sortTimer').textContent=sortTimeLeft;
+    if(sortTimeLeft<=0) endSort();
+  },1000);
+}
+function endSort(){
+  sortActive=false; clearInterval(sortInterval);
+  $('#sortResult').textContent = '🏁 Selesai! Skor akhir: '+sortScore+' poin.';
+  state.edugameScore = sortScore; state.edugamePlayed=true; if(window.addOnlineXP) addOnlineXP(30); updateRecap();
+}
+$('#sortStart').addEventListener('click', startSort);
+$('#sortReset').addEventListener('click', startSort);
+
+/* ---------- pair activity ---------- */
+$('#pairSave').addEventListener('click', function(){
+  $('#pairStatus').textContent = '✅ Tersimpan di sesi ini!';
+  state.pairSaved = true; updateRecap();
+});
+
+/* ---------- lab maya ---------- */
+var verbMap = {
+  visit:{past:'visited', reg:true}, play:{past:'played', reg:true}, eat:{past:'ate', reg:false},
+  watch:{past:'watched', reg:true}, join:{past:'joined', reg:true}, dance:{past:'danced', reg:true},
+  run:{past:'ran', reg:false}, go:{past:'went', reg:false}, feel:{past:'felt', reg:false}
+};
+function buildSentence(pastForm){
+  var subj = $('#labSubject').value, verb = $('#labVerb').value, place = $('#labPlace').value, time = $('#labTime').value;
+  var verbShown = pastForm ? '<span class="verb-new">'+verbMap[verb].past+'</span>' : '<span class="verb-new">'+verb+'</span>';
+  $('#labSentence').innerHTML = subj+' '+verbShown+' '+place+' '+time+'.';
+}
+buildSentence(false);
+['labSubject','labVerb','labPlace','labTime'].forEach(function(id){
+  $('#'+id).addEventListener('change', function(){ buildSentence(false); $('#labRule').textContent=''; });
+});
+$('#labTransform').addEventListener('click', function(){
+  var verb = $('#labVerb').value;
+  buildSentence(true);
+  $('#labRule').textContent = verbMap[verb].reg
+    ? '📐 Aturan: kata kerja beraturan cukup ditambah "-ed" ('+verb+' → '+verbMap[verb].past+').'
+    : '⚡ Perhatian: kata kerja tidak beraturan berubah bentuk total ('+verb+' → '+verbMap[verb].past+'), tidak cukup +ed!';
+});
+$('#labRecord').addEventListener('click', function(){
+  var sentenceText = $('#labSentence').innerText;
+  var li = document.createElement('li'); li.textContent = '#'+(state.labExperiments+1)+' — '+sentenceText;
+  $('#labLog').prepend(li);
+  state.labExperiments++; $('#labCount').textContent = state.labExperiments;
+  updateRecap();
+});
+
+/* ---------- reflection stickers ---------- */
+$all('.sticker-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    $all('.sticker-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    state.reflection = btn.dataset.r;
+    $('#reflectResult').textContent = 'Kamu memilih: '+btn.dataset.r;
+    updateRecap();
+  });
+});
+$('#reflectSave').addEventListener('click', function(){
+  var val = $('#reflectWord').value.trim();
+  if(!val){ $('#reflectWordStatus').textContent='Isi dulu ya 🙂'; return; }
+  state.reflectionWord = val;
+  $('#reflectWordStatus').textContent = '✅ Tersimpan: "'+val+'"';
+  updateRecap();
+});
+
+/* ---------- quiz ---------- */
+var quizData = [
+  {q:"I ___ my grandmother's house last week.", opts:['visit','visiting','visited'], a:2, ex:'"Visited" adalah bentuk lampau dari "visit" karena kejadian sudah terjadi minggu lalu.'},
+  {q:'Yesterday, we ___ traditional food at the festival.', opts:['eat','ate','eating'], a:1, ex:'"Eat" adalah kata kerja tidak beraturan; bentuk lampaunya adalah "ate", bukan "eated".'},
+  {q:'Pilih bentuk lampau (past tense) dari kata "watch":', opts:['watches','watched','watching'], a:1, ex:'"Watch" adalah kata kerja beraturan, cukup tambahkan "-ed" menjadi "watched".'},
+  {q:'They ___ in the village parade last Independence Day.', opts:['join','joined','joins'], a:1, ex:'Karena ada keterangan waktu lampau "last Independence Day", kata kerjanya harus "joined".'},
+  {q:'Kalimat mana yang menceritakan pengalaman MASA LALU dengan benar?', opts:['I play games in the village.','I played games in the village last month.','I playing games in the village.'], a:1, ex:'Kalimat kedua memakai "played" (past tense) dan keterangan waktu "last month" yang tepat.'},
+  {q:'Bentuk lampau dari kata kerja tidak beraturan "go" adalah...', opts:['goed','going','went'], a:2, ex:'"Go" adalah kata kerja tidak beraturan; bentuk lampaunya adalah "went".'}
+];
+var quizIdx=0, quizScore=0, quizAnswered=false;
+function renderQuiz(){
+  var area = $('#quizArea'); area.innerHTML='';
+  if(quizIdx>=quizData.length){ finishQuiz(); return; }
+  $('#quizFinal').style.display='none'; area.style.display='block';
+  var item = quizData[quizIdx];
+  $('#quizBar').style.width = (quizIdx/quizData.length*100)+'%';
+  var h = document.createElement('div');
+  h.innerHTML = '<p style="font-weight:700;color:var(--brick);">Soal '+(quizIdx+1)+' dari '+quizData.length+'</p><h3>'+item.q+'</h3>';
+  area.appendChild(h);
+  item.opts.forEach(function(opt,i){
+    var b = document.createElement('button'); b.className='quiz-opt'; b.textContent = opt;
+    b.addEventListener('click', function(){
+      if(quizAnswered)return; quizAnswered=true;
+      var correct = i===item.a;
+      b.classList.add(correct?'correct':'wrong');
+      if(!correct){ $all('.quiz-opt',area)[item.a].classList.add('correct'); }
+      $all('.quiz-opt',area).forEach(function(x){x.disabled=true;});
+      if(correct) quizScore++;
+      var ex = document.createElement('div'); ex.id='quizExplain'; ex.style.display='block'; ex.textContent='💡 '+item.ex;
+      area.appendChild(ex);
+      var nextBtn = document.createElement('button'); nextBtn.className='btn small'; nextBtn.style.marginTop='14px';
+      nextBtn.textContent = (quizIdx===quizData.length-1) ? 'Lihat Skor Akhir' : 'Lanjut →';
+      nextBtn.addEventListener('click', function(){ quizIdx++; quizAnswered=false; renderQuiz(); });
+      area.appendChild(nextBtn);
+    });
+    area.appendChild(b);
+  });
+}
+function finishQuiz(){
+  $('#quizArea').style.display='none'; $('#quizBar').style.width='100%';
+  $('#quizFinal').style.display='block';
+  $('#quizScoreText').textContent = quizScore+' / '+quizData.length;
+  var msg = quizScore>=5 ? 'Luar biasa! Kamu sudah sangat menguasai past tense! 🌟' : quizScore>=3 ? 'Bagus! Sedikit lagi kamu akan mahir. 💪' : 'Yuk, coba lagi dan pelajari kembali materinya! 📖';
+  $('#quizFeedback').textContent = msg;
+  state.quizScore = quizScore; state.quizTotal = quizData.length; state.quizDone=true; if(window.addOnlineXP) addOnlineXP(50); updateRecap();
+}
+$('#quizRetry').addEventListener('click', function(){ quizIdx=0; quizScore=0; quizAnswered=false; renderQuiz(); });
+renderQuiz();
+
+/* ---------- recap / closing ---------- */
+function updateRecap(){
+  var wrap = $('#recapBadges'); wrap.innerHTML='';
+  var items = [
+    '🧩 Pencocokan kata: '+(state.matchDone?'Selesai ✅':'Belum selesai'),
+    '🎮 Edugame Sortir: '+(state.edugamePlayed?('Skor '+state.edugameScore):'Belum dimainkan'),
+    '✏️ Kalimat berpasangan: '+(state.pairSaved?'Tersimpan ✅':'Belum diisi'),
+    '🔬 Lab Maya: '+state.labExperiments+' percobaan tercatat',
+    '🎯 Refleksi: '+(state.reflection||'Belum diisi'),
+    '💬 Kata favorit: '+(state.reflectionWord||'Belum diisi'),
+    '📝 Skor Kuis: '+(state.quizDone?(state.quizScore+' / '+state.quizTotal):'Belum dikerjakan')
+  ];
+  items.forEach(function(t){ var d=document.createElement('div'); d.className='badge'; d.textContent=t; wrap.appendChild(d); });
+}
+updateRecap();
+$('#restartBtn').addEventListener('click', function(){ window.location.reload(); });
+
+
+/* ---------- DEVELOPER / REFERENCE MODALS ---------- */
+function openInfoModal(id){
+  var modal=document.getElementById(id);
+  if(modal){ modal.classList.add('open'); document.body.style.overflow='hidden'; }
+}
+function closeInfoModal(id){
+  var modal=document.getElementById(id);
+  if(modal){ modal.classList.remove('open'); document.body.style.overflow=''; }
+}
+$all('[data-modal-open]').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    openInfoModal(btn.getAttribute('data-modal-open'));
+  });
+});
+$all('[data-modal-close]').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    closeInfoModal(btn.getAttribute('data-modal-close'));
+  });
+});
+$all('.info-modal').forEach(function(modal){
+  modal.addEventListener('click',function(e){
+    if(e.target===modal) closeInfoModal(modal.id);
+  });
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    $all('.info-modal.open').forEach(function(m){ closeInfoModal(m.id); });
+  }
+});
+
+</script>
+
+/* ---------- ONLINE COMPETITION LAYER ---------- */
+(function(){
+  const KEY='uvm_online_profile_v1';
+  let profile={name:'Guest Learner',xp:0};
+  try{ profile=Object.assign(profile,JSON.parse(localStorage.getItem(KEY)||'{}')); }catch(e){}
+  window.showOnlineToast=function(msg){
+    const t=document.getElementById('onlineToast'); if(!t)return;
+    t.textContent=msg;t.classList.add('show');clearTimeout(window.__toastTimer);
+    window.__toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+  };
+  window.openStudentModal=function(){
+    const m=document.getElementById('studentModal'); if(!m)return;
+    document.getElementById('studentNameInput').value=profile.name==='Guest Learner'?'':profile.name;
+    m.classList.add('open'); document.body.style.overflow='hidden';
+    setTimeout(()=>document.getElementById('studentNameInput').focus(),50);
+  };
+  window.closeStudentModal=function(){
+    const m=document.getElementById('studentModal'); if(!m)return;
+    m.classList.remove('open'); document.body.style.overflow='';
+  };
+  window.saveStudentName=function(){
+    const v=document.getElementById('studentNameInput').value.trim();
+    if(v) profile.name=v;
+    localStorage.setItem(KEY,JSON.stringify(profile));
+    refreshOnlineProfile(); closeStudentModal(); showOnlineToast('Profil siswa tersimpan ✓');
+  };
+  window.addOnlineXP=function(points){
+    profile.xp=Math.min(1000,(profile.xp||0)+points);
+    localStorage.setItem(KEY,JSON.stringify(profile)); refreshOnlineProfile();
+  };
+  function refreshOnlineProfile(){
+    const name=document.getElementById('studentNameLabel');
+    const xp=document.getElementById('xpText');
+    const fill=document.getElementById('xpFill');
+    if(name)name.textContent=profile.name;
+    if(xp)xp.textContent=(profile.xp||0)+' XP';
+    if(fill)fill.style.width=Math.min(100,(profile.xp||0)%100)+'%';
+  }
+  window.speakOnlineIntro=function(){
+    if(!('speechSynthesis' in window)){showOnlineToast('Text-to-Speech tidak tersedia di browser ini.');return;}
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance('Welcome to My Village, My Story. Build your unforgettable village memory in English.');
+    u.lang='en-US';u.rate=.88;speechSynthesis.speak(u);
+  };
+  refreshOnlineProfile();
+  document.addEventListener('click',e=>{
+    const m=document.getElementById('studentModal');
+    if(e.target===m) closeStudentModal();
+  });
+})();
+
+</body>
+</html>
